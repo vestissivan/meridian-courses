@@ -2,13 +2,25 @@
 /**
  * Restores large source files from base64 tarball before build/dev.
  */
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
 
 const root = join(fileURLToPath(new URL(".", import.meta.url)), "..");
-const b64 = readFileSync(join(root, "scripts/missing-sources.b64"), "utf8").trim();
+const single = join(root, "scripts/missing-sources.b64");
+const part0 = join(root, "scripts/missing-sources.b64.0");
+let b64;
+if (existsSync(single)) {
+  b64 = readFileSync(single, "utf8").trim();
+} else {
+  b64 = "";
+  for (let i = 0; i < 10; i++) {
+    const p = join(root, `scripts/missing-sources.b64.${i}`);
+    if (!existsSync(p)) break;
+    b64 += readFileSync(p, "utf8").trim();
+  }
+}
 const tar = gunzipSync(Buffer.from(b64, "base64"));
 
 let offset = 0;
