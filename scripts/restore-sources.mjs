@@ -1,28 +1,16 @@
 #!/usr/bin/env node
-/**
- * Restores large source files from base64 tarball before build/dev.
- */
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
+import c0 from "./chunks/0.mjs";
+import c1 from "./chunks/1.mjs";
+import c2 from "./chunks/2.mjs";
+import c3 from "./chunks/3.mjs";
 
 const root = join(fileURLToPath(new URL(".", import.meta.url)), "..");
-const single = join(root, "scripts/missing-sources.b64");
-const part0 = join(root, "scripts/missing-sources.b64.0");
-let b64;
-if (existsSync(single)) {
-  b64 = readFileSync(single, "utf8").trim();
-} else {
-  b64 = "";
-  for (let i = 0; i < 10; i++) {
-    const p = join(root, `scripts/missing-sources.b64.${i}`);
-    if (!existsSync(p)) break;
-    b64 += readFileSync(p, "utf8").trim();
-  }
-}
+const b64 = [c0, c1, c2, c3].join("");
 const tar = gunzipSync(Buffer.from(b64, "base64"));
-
 let offset = 0;
 while (offset + 512 <= tar.length) {
   const header = tar.subarray(offset, offset + 512);
